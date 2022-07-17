@@ -1,102 +1,99 @@
-import React, { Component } from 'react'
-import PropTypes from 'prop-types'
+import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 
-import { StyleSheet, View } from 'react-native'
+import { StyleSheet, View } from 'react-native';
 
-import range from 'just-range'
+import range from 'just-range';
 
-import Key from './Key'
+import Key from './Key';
 
-import MidiNumbers from './MidiNumbers'
+import MidiNumbers from './MidiNumbers';
 
 class Piano extends Component {
-  state = {
-    noteRange: {
-      first: MidiNumbers.fromNote('c4'),
-      last: MidiNumbers.fromNote('e5')
+    state = {
+        noteRange: {
+            first: MidiNumbers.fromNote('c4'),
+            last: MidiNumbers.fromNote('e5'),
+        },
+    };
+
+    static propTypes = {
+        onPlayNoteInput: PropTypes.func.isRequired,
+        onStopNoteInput: PropTypes.func.isRequired,
+    };
+
+    componentDidMount() {
+        const { noteRange } = this.props;
+
+        this.setState({
+            ...this.state,
+            noteRange: {
+                first: MidiNumbers.fromNote(noteRange.first),
+                last: MidiNumbers.fromNote(noteRange.last),
+            },
+        });
     }
-  }
 
-  static propTypes = {
-    onPlayNoteInput: PropTypes.func.isRequired,
-    onStopNoteInput: PropTypes.func.isRequired
-  };
+    getNaturalKeyCount() {
+        return this.getMidiNumbers().filter(number => {
+            const { isAccidental } = MidiNumbers.getAttributes(number);
+            return !isAccidental;
+        }).length;
+    }
 
-  componentDidMount() {
-    const { noteRange } = this.props
+    getNaturalKeys() {
+        return this.getMidiNumbers().filter(number => {
+            const { isAccidental } = MidiNumbers.getAttributes(number);
+            return !isAccidental;
+        });
+    }
 
-    this.setState({
-      ...this.state,
-      noteRange: {
-        first: MidiNumbers.fromNote(noteRange.first),
-        last: MidiNumbers.fromNote(noteRange.last)
-      }
-    })
-  }
+    getAccidentalKeys() {
+        return this.getMidiNumbers().filter(number => {
+            const { isAccidental } = MidiNumbers.getAttributes(number);
+            return isAccidental;
+        });
+    }
 
-  getNaturalKeyCount() {
-    return this.getMidiNumbers().filter((number) => {
-      const { isAccidental } = MidiNumbers.getAttributes(number);
-      return !isAccidental;
-    }).length;
-  }
+    getMidiNumbers() {
+        return range(this.state.noteRange.first, this.state.noteRange.last + 1);
+    }
 
-  getNaturalKeys() {
-    return this.getMidiNumbers().filter((number) => {
-      const { isAccidental } = MidiNumbers.getAttributes(number);
-      return !isAccidental;
-    });
-  }
+    getNaturalKeyWidth() {
+        return 1 / this.getNaturalKeyCount();
+    }
 
-  getAccidentalKeys() {
-    return this.getMidiNumbers().filter((number) => {
-      const { isAccidental } = MidiNumbers.getAttributes(number);
-      return isAccidental;
-    });
-  }
-
-  getMidiNumbers() {
-    return range(this.state.noteRange.first, this.state.noteRange.last + 1);
-  }
-
-  getNaturalKeyWidth() {
-    return 1 / this.getNaturalKeyCount();
-  }
-
-  render() {
-    const naturalKeyWidth = this.getNaturalKeyWidth();
-    return (
-      <View style={ styles.container}>
-        {
-          this.getMidiNumbers().map(midiNumber => {
-            const { isAccidental } = MidiNumbers.getAttributes(midiNumber);
-            return (
-              <Key
-                naturalKeyWidth={ naturalKeyWidth }
-                midiNumber={ midiNumber }
-                noteRange={ this.state.noteRange }
-                accidental={ isAccidental }
-                onPlayNoteInput={ this.props.onPlayNoteInput }
-                onStopNoteInput={ this.props.onStopNoteInput }
-                useTouchEvents={ true }
-                key={ midiNumber }
-              />                  
-            )
-          })
-        }
-      </View>
-    )
-  }
+    render() {
+        const naturalKeyWidth = this.getNaturalKeyWidth();
+        return (
+            <View style={styles.container}>
+                {this.getMidiNumbers().map(midiNumber => {
+                    const { isAccidental } =
+                        MidiNumbers.getAttributes(midiNumber);
+                    return (
+                        <Key
+                            naturalKeyWidth={naturalKeyWidth}
+                            midiNumber={midiNumber}
+                            noteRange={this.state.noteRange}
+                            accidental={isAccidental}
+                            onPlayNoteInput={this.props.onPlayNoteInput}
+                            onStopNoteInput={this.props.onStopNoteInput}
+                            useTouchEvents={true}
+                            key={midiNumber}
+                        />
+                    );
+                })}
+            </View>
+        );
+    }
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1, 
-    position: 'relative', 
-    backgroundColor: 'red', 
-    borderTopColor: 'red', 
-    borderTopWidth: 1,
-  }
-})
+    container: {
+        flex: 1,
+        position: 'relative',
+        borderTopWidth: 1,
+    },
+});
 
-export default Piano
+export default Piano;
